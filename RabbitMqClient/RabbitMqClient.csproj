@@ -53,5 +53,11 @@
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\RabbitMqCommon\RabbitMqCommon.csproj">
+      <Project>{82F65066-E6A0-48AD-A232-4609BFF982DF}</Project>
+      <Name>RabbitMqCommon</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

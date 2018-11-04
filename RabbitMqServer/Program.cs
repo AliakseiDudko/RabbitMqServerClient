@@ -2,6 +2,7 @@
 using System.Text;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using RabbitMqCommon;
 
 namespace RabbitMqServer
 {
@@ -9,33 +10,25 @@ namespace RabbitMqServer
     {
         static void Main(string[] args)
         {
-            var factory = new ConnectionFactory() { HostName = "localhost" };
-            using (var connection = factory.CreateConnection())
+            var service = new RabbitMqService("localhost");
+            var connection = service.GetConnection();
+            var channel = connection.CreateModel();
+            service.SetupQueue(channel, "DocQueue");
+
+            var consumer = new EventingBasicConsumer(channel);
+            consumer.Received += (model, ea) =>
             {
-                using (var channel = connection.CreateModel())
-                {
-                    channel.QueueDeclare(
-                        queue: "DocQueue",
-                        durable: false,
-                        exclusive: false,
-                        autoDelete: false,
-                        arguments: null);
+                var body = ea.Body;
+                var message = Encoding.UTF8.GetString(body);
+                Console.WriteLine(" [x] Received {0}", message);
+            };
 
-                    var consumer = new EventingBasicConsumer(channel);
-                    consumer.Received += (model, ea) =>
-                    {
-                        var body = ea.Body;
-                        var message = Encoding.UTF8.GetString(body);
-                        Console.WriteLine(" [x] Received {0}", message);
-                    };
-                    channel.BasicConsume(queue: "DocQueue",
-                                         autoAck: true,
-                                         consumer: consumer);
+            channel.BasicConsume(queue: "DocQueue",
+                                 autoAck: true,
+                                 consumer: consumer);
 
-                    Console.WriteLine(" Press [enter] to exit.");
-                    Console.ReadLine();
-                }
-            }
+            Console.WriteLine(" Press [enter] to exit.");
+            Console.ReadLine();
         }
     }
 }
