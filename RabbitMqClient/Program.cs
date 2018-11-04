@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Text;
+using System.IO;
 using RabbitMQ.Client;
 using RabbitMqCommon;
 
@@ -7,23 +7,23 @@ namespace RabbitMqClient
 {
     class Program
     {
+        private static readonly string QueueName = "DocQueue";
+
         static void Main(string[] args)
         {
-            var service = new RabbitMqService("localhost");
-            var connection = service.GetConnection();
-            var channel = connection.CreateModel();
-            service.SetupQueue(channel, "DocQueue");
+            var service = new RabbitMqService();
+            var connection = service.GetConnection("localhost");
+            var channel = service.GetModel(connection, QueueName);
 
-            string message = "Hello World!";
-            var body = Encoding.UTF8.GetBytes(message);
+            var contentBody = File.ReadAllBytes(@"./Resources/cat.jpg");
 
             channel.BasicPublish(
                 exchange: "",
-                routingKey: "DocQueue",
+                routingKey: QueueName,
                 basicProperties: null,
-                body: body);
+                body: contentBody);
 
-            Console.WriteLine(" [x] Sent {0}", message);
+            Console.WriteLine($" [x] Sent message. Length of content: {contentBody.Length}");
 
             Console.WriteLine(" Press [enter] to exit.");
             Console.ReadLine();

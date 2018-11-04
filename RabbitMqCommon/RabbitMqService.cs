@@ -4,14 +4,7 @@ namespace RabbitMqCommon
 {
     public class RabbitMqService
     {
-        private readonly string hostName;
-
-        public RabbitMqService(string hostName)
-        {
-            this.hostName = hostName;
-        }
-
-        public IConnection GetConnection()
+        public IConnection GetConnection(string hostName)
         {
             ConnectionFactory connectionFactory = new ConnectionFactory
             {
@@ -21,9 +14,12 @@ namespace RabbitMqCommon
             return connectionFactory.CreateConnection();
         }
 
-        public void SetupQueue(IModel channel, string queueName)
+        public IModel GetModel(IConnection connection, string queueName)
         {
-            channel.QueueDeclare(queueName, true, false, false, null);
+            var model = connection.CreateModel();
+            model.QueueDeclare(queueName, false, false, false, null);
+
+            return model;
         }
     }
 }

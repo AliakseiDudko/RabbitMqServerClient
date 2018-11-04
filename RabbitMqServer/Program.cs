@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Text;
+using System.IO;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using RabbitMqCommon;
@@ -8,22 +8,23 @@ namespace RabbitMqServer
 {
     class Program
     {
+        private static readonly string QueueName = "DocQueue";
+
         static void Main(string[] args)
         {
-            var service = new RabbitMqService("localhost");
-            var connection = service.GetConnection();
-            var channel = connection.CreateModel();
-            service.SetupQueue(channel, "DocQueue");
+            var service = new RabbitMqService();
+            var connection = service.GetConnection("localhost");
+            var channel = service.GetModel(connection, QueueName);
 
             var consumer = new EventingBasicConsumer(channel);
             consumer.Received += (model, ea) =>
             {
-                var body = ea.Body;
-                var message = Encoding.UTF8.GetString(body);
-                Console.WriteLine(" [x] Received {0}", message);
+                File.WriteAllBytes("cat.jpg", ea.Body);
+
+                Console.WriteLine($" [x] Received. Length of content: {ea.Body.Length}");
             };
 
-            channel.BasicConsume(queue: "DocQueue",
+            channel.BasicConsume(queue: QueueName,
                                  autoAck: true,
                                  consumer: consumer);
 
