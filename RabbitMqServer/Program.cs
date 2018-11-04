@@ -1,37 +1,26 @@
 ﻿using System;
 using System.IO;
-using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
 using RabbitMqCommon;
 
 namespace RabbitMqServer
 {
     class Program
     {
-        private static readonly string HostName = "localhost";
-        private static readonly string QueueName = "DocQueue";
-
         static void Main(string[] args)
         {
-            var service = new RabbitMqService(HostName);
-            var channel = service.GetModel(QueueName);
-
-            var consumer = new EventingBasicConsumer(channel);
-            consumer.Received += ReceiveMessage;
-
-            channel.BasicConsume(queue: QueueName,
-                                 autoAck: true,
-                                 consumer: consumer);
+            var service = new QueueService("localhost", "DocQueue");
+            service.ChunkedMessageReceived += ChunkedMessageReceived;
+            service.Listen();
 
             Console.WriteLine(" Press [enter] to exit.");
             Console.ReadLine();
         }
 
-        private static void ReceiveMessage(object sender, BasicDeliverEventArgs e)
+        private static void ChunkedMessageReceived(object sender, ChunkedMessageEventArgs e)
         {
-            File.WriteAllBytes("cat.jpg", e.Body);
+            File.WriteAllBytes("cat.jpg", e.Content);
 
-            Console.WriteLine($" [x] Received. Length of content: {e.Body.Length}");
+            Console.WriteLine($" [x] Received. Length of content: {e.Content.Length}");
         }
     }
 }
