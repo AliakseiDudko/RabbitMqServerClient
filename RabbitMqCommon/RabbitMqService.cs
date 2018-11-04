@@ -4,17 +4,19 @@ namespace RabbitMqCommon
 {
     public class RabbitMqService
     {
-        public IConnection GetConnection(string hostName)
+        private readonly IConnection connection;
+
+        public RabbitMqService(string hostName)
         {
             ConnectionFactory connectionFactory = new ConnectionFactory
             {
                 HostName = hostName
             };
 
-            return connectionFactory.CreateConnection();
+            connection = connectionFactory.CreateConnection();
         }
 
-        public IModel GetModel(IConnection connection, string queueName)
+        public IModel GetModel(string queueName)
         {
             var model = connection.CreateModel();
             model.QueueDeclare(queueName, false, false, false, null);

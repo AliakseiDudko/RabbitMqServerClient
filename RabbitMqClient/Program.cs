@@ -7,13 +7,13 @@ namespace RabbitMqClient
 {
     class Program
     {
+        private static readonly string HostName = "localhost";
         private static readonly string QueueName = "DocQueue";
 
         static void Main(string[] args)
         {
-            var service = new RabbitMqService();
-            var connection = service.GetConnection("localhost");
-            var channel = service.GetModel(connection, QueueName);
+            var service = new RabbitMqService(HostName);
+            var channel = service.GetModel(QueueName);
 
             var contentBody = File.ReadAllBytes(@"./Resources/cat.jpg");
 
